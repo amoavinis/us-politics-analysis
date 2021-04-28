@@ -14,4 +14,4 @@ files = os.listdir(input_dir)
 
 for f in files:
     filename = input_dir+'/'+f
-    os.system('twarc hydrate ' + filename + ' > ' + output_dir + '/' + f + '_out')
+    os.system('twarc hydrate ' + filename + ' > ' + output_dir + '/' + f + '_out.jsonl')
