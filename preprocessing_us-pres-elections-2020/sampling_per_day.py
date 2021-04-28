@@ -29,7 +29,7 @@ def sampling():
             day_dataset = spark.read.text(month_path + '/us-presidential-tweet-id-' + month + '-' + day_str + '-*.txt')
             day_dataset.persist()
             size = day_dataset.count()
-            sampled_day_dataset = day_dataset.sample(fraction=4000 / size, seed=4)
+            sampled_day_dataset = day_dataset.sample(fraction=21000 / size, seed=4)
             day_dataset.unpersist()
             twitter_ids = sampled_day_dataset.collect()
             twitter_ids = [row['value'] for row in twitter_ids]
