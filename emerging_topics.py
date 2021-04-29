@@ -8,26 +8,49 @@ from nltk.stem.porter import PorterStemmer
 
 stop_words = set(stopwords.words('english'))
 stemmer = PorterStemmer()
+month_dir = {'Sep': 9, 'Oct': 10, 'Nov': 11}
 
 
 @F.udf(returnType=spark_types.ArrayType(spark_types.StringType()))
 def text_preprocessing(text):
-	stemmed_text = [word for word in text.split(" ")
+	stemmed_text = [stemmer.stem(word) for word in text.split(" ")
 		if word not in stop_words and len(word) > 3]
 
 	return stemmed_text
 
 
+@F.udf(returnType=spark_types.ArrayType(spark_types.IntegerType()))
+def transform_date(date_text):
+	month = date_text.split()[1]
+	month = month_dir[month]
+	day = int(date_text.split()[2])
+
+	return [month, day]
+
+
+def filter_by_period(period):
+	def f(date):
+		return period['start'] < (date[0], date[1]) < period['end']
+	return F.udf(f, spark_types.BooleanType())
+
+
 def explore_emerging_topics(dataset_path):
+
 	spark = SparkSession.builder.master("local[*]"). \
 		appName("emerging_topics"). \
 		getOrCreate()
 
-	dataset = spark.read.csv(dataset_path, header=True)
+	dataset = spark.read.csv(dataset_path, header=True).filter(F.col("date").isNotNull())
 
+	dataset = dataset.select("ID", transform_date("date").alias('date'), "text")
+	dataset.show()
+	print(dataset.count())
+	period = {'start': (10, 21), 'end': (10, 22)}
+	print(dataset.filter(filter_by_period(period)(F.col('date'))).count())
+	exit()
 	preprocessed_dataset = dataset.select("ID", "date", text_preprocessing("text").alias("words"))
 
-	cv = CountVectorizer(inputCol="words", outputCol="raw_features", vocabSize=10000, minDF=10.0)
+	cv = CountVectorizer(inputCol="words", outputCol="raw_features", vocabSize=30000, minDF=100, maxDF=10000)
 	cvmodel = cv.fit(preprocessed_dataset)
 	featurizedData = cvmodel.transform(preprocessed_dataset)
 

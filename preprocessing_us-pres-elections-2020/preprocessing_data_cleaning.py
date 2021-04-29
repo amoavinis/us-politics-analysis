@@ -3,11 +3,12 @@ from pyspark.ml.feature import RegexTokenizer
 from pyspark.sql import types as spark_types
 import argparse
 import re
-
+from nltk.tokenize import TreebankWordTokenizer
 
 @F.udf(returnType=spark_types.StringType())
 def clean_tweet(text):
-	cleaned_text = re.sub("(@[A-Za-z0-9]+)|([^0-9A-Za-z \t])|(\w+:\/\/\S+)", " ", text).lower().split()
+	cleaned_text = re.sub("(@[A-Za-z0-9]+)|([^0-9A-Za-z \t])|(\w+:\/\/\S+)", " ", text).lower()
+	cleaned_text = TreebankWordTokenizer().tokenize(cleaned_text)
 	# stemmed_text = [
 	# 	stemmer.stem(word) for word in cleaned_text
 	# 	if word not in stop_words and len(word) > 3]

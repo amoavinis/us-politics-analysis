@@ -3,6 +3,7 @@ import sys
 import os
 import pandas
 import numpy
+from nltk.tokenize import TreebankWordTokenizer
 
 numpy.set_printoptions(suppress=True)
 
@@ -22,7 +23,7 @@ for filename in os.listdir(input_dir):
             data = json.loads(line)
 
             ids.append(int(data['id']))
-            tweets.append(data['full_text'])
+            tweets.append(" ".join(TreebankWordTokenizer().tokenize(data['full_text'])))
             dates.append(data["created_at"])
 
 all_data = list(zip(ids, dates, tweets))
