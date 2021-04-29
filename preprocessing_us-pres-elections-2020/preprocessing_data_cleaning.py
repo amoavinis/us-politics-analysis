@@ -5,7 +5,6 @@ import argparse
 import re
 
 
-
 @F.udf(returnType=spark_types.StringType())
 def clean_tweet(text):
 	cleaned_text = re.sub("(@[A-Za-z0-9]+)|([^0-9A-Za-z \t])|(\w+:\/\/\S+)", " ", text).lower().split()
