@@ -30,7 +30,7 @@ def transform_date(date_text):
 
 def filter_by_period(period):
 	def f(date):
-		return period['start'] < (date[0], date[1]) < period['end']
+		return period['start'] <= (date[0], date[1]) <= period['end']
 	return F.udf(f, spark_types.BooleanType())
 
 
