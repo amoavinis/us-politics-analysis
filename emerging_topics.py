@@ -43,12 +43,11 @@ def explore_emerging_topics(dataset_path):
 	dataset = spark.read.csv(dataset_path, header=True).filter(F.col("date").isNotNull())
 
 	dataset = dataset.select("ID", transform_date("date").alias('date'), "text")
-	dataset.show()
-	print(dataset.count())
-	period = {'start': (10, 21), 'end': (10, 22)}
-	print(dataset.filter(filter_by_period(period)(F.col('date'))).count())
-	exit()
-	preprocessed_dataset = dataset.select("ID", "date", text_preprocessing("text").alias("words"))
+
+	period = {'start': (10, 20), 'end': (10, 27)}
+	filtered_dataset = dataset.filter(filter_by_period(period)(F.col('date')))
+
+	preprocessed_dataset = filtered_dataset.select("ID", "date", text_preprocessing("text").alias("words"))
 
 	cv = CountVectorizer(inputCol="words", outputCol="raw_features", vocabSize=30000, minDF=100, maxDF=10000)
 	cvmodel = cv.fit(preprocessed_dataset)
