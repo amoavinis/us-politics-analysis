@@ -3,7 +3,7 @@ import sys
 import os
 import pandas
 import numpy
-from nltk.tokenize import TreebankWordTokenizer
+
 
 numpy.set_printoptions(suppress=True)
 
@@ -23,15 +23,15 @@ for filename in os.listdir(input_dir):
             data = json.loads(line)
 
             ids.append(int(data['id']))
-            tweets.append(" ".join(TreebankWordTokenizer().tokenize(data['full_text'])))
+            tweets.append(data['full_text'])
             dates.append(data["created_at"])
 
 all_data = list(zip(ids, dates, tweets))
 all_data = sorted(all_data, key=lambda l:l[0])
 
 df = pandas.DataFrame(all_data, columns=['ID', 'date', 'text'])
-df.to_csv(output_file, index=False)
+df.to_json(output_file, orient='records')
 
 
 # How to run:
-# $ python jsonl_to_csv.py outputs/ tweets-us.csv
+# $ python jsonl_to_csv.py outputs/ tweets-us-{DATE}.json
