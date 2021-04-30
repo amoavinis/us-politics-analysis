@@ -22,9 +22,15 @@ for filename in os.listdir(input_dir):
         for line in file:
             data = json.loads(line)
 
-            ids.append(int(data['id']))
-            tweets.append(data['full_text'])
-            dates.append(data["created_at"])
+            # If it's a retweet get the original status to avoid information loss
+            if data.get('retweeted_status'):
+                ids.append(int(data['retweeted_status']['id']))
+                tweets.append(data['retweeted_status']['full_text'])
+                dates.append(data['retweeted_status']["created_at"])
+            else:
+                ids.append(int(data['id']))
+                tweets.append(data['full_text'])
+                dates.append(data["created_at"])
 
 all_data = list(zip(ids, dates, tweets))
 all_data = sorted(all_data, key=lambda l:l[0])
