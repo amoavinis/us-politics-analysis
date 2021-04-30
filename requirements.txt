@@ -4,3 +4,4 @@ tweet-preprocessor==0.6.0
 pyspark==3.1.1
 tqdm==4.60.0
 twarc==2.0.8
+nltk==3.6.2
