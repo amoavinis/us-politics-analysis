@@ -9,6 +9,18 @@ from pyspark.sql import types as spark_types
 from nltk.corpus import stopwords
 from nltk.stem.porter import PorterStemmer
 from tqdm import tqdm
+import string
+import preprocessor
+from nltk.tokenize import TreebankWordTokenizer
+
+preprocessor.set_options(
+	preprocessor.OPT.URL,
+	preprocessor.OPT.MENTION,
+	preprocessor.OPT.EMOJI,
+	preprocessor.OPT.SMILEY,
+	preprocessor.OPT.NUMBER,
+	preprocessor.OPT.ESCAPE_CHAR,
+)
 
 stop_words = set(stopwords.words('english'))
 stemmer = PorterStemmer()
@@ -17,10 +29,14 @@ month_dir = {'Sep': 9, 'Oct': 10, 'Nov': 11}
 
 @F.udf(returnType=spark_types.ArrayType(spark_types.StringType()))
 def text_preprocessing(text):
-	stemmed_text = [stemmer.stem(word) for word in text.split(" ")
-		if word not in stop_words and len(word) > 3]
+	cleaned_text = preprocessor.clean(text)
+	stemmed_words = [stemmer.stem(word) for word in TreebankWordTokenizer().tokenize(cleaned_text)
+		if word not in stop_words and word not in string.punctuation and len(word) > 3]
 
-	return stemmed_text
+	if len(stemmed_words) < 4:
+		return None
+	else:
+		return stemmed_words
 
 
 @F.udf(returnType=spark_types.ArrayType(spark_types.IntegerType()))
@@ -58,7 +74,8 @@ def explore_emerging_topics(dataset_path, periods_path, saving_path):
 	for index, period in tqdm(enumerate(periods)):
 		filtered_dataset = dataset.filter(filter_by_period(period)(F.col('date')))
 
-		preprocessed_dataset = filtered_dataset.select("ID", "date", text_preprocessing("text").alias("words"))
+		preprocessed_dataset = filtered_dataset.select("ID", "date", text_preprocessing("text").alias("words"))\
+			.filter(F.col("text").isNotNull())
 
 		cv = CountVectorizer(inputCol="words", outputCol="raw_features", vocabSize=30000, minDF=100, maxDF=10000)
 		cvmodel = cv.fit(preprocessed_dataset)
