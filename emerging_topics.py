@@ -6,46 +6,9 @@ from pyspark.sql import functions as F, SparkSession
 from pyspark.ml.feature import CountVectorizer, IDF
 from pyspark.ml.clustering import LDA
 from pyspark.sql import types as spark_types
-from nltk.corpus import stopwords
-from nltk.stem.porter import PorterStemmer
 from tqdm import tqdm
-import string
-import preprocessor
-from nltk.tokenize import TreebankWordTokenizer
 
-preprocessor.set_options(
-	preprocessor.OPT.URL,
-	preprocessor.OPT.MENTION,
-	preprocessor.OPT.EMOJI,
-	preprocessor.OPT.SMILEY,
-	preprocessor.OPT.NUMBER,
-	preprocessor.OPT.ESCAPE_CHAR,
-)
-
-stop_words = set(stopwords.words('english'))
-stemmer = PorterStemmer()
 month_dir = {'Sep': 9, 'Oct': 10, 'Nov': 11}
-
-
-@F.udf(returnType=spark_types.ArrayType(spark_types.StringType()))
-def text_preprocessing(text):
-	cleaned_text = preprocessor.clean(text)
-	stemmed_words = [stemmer.stem(word) for word in TreebankWordTokenizer().tokenize(cleaned_text)
-		if word not in stop_words and word not in string.punctuation and len(word) > 3]
-
-	if len(stemmed_words) < 4:
-		return None
-	else:
-		return stemmed_words
-
-
-@F.udf(returnType=spark_types.ArrayType(spark_types.IntegerType()))
-def transform_date(date_text):
-	month = date_text.split()[1]
-	month = month_dir[month]
-	day = int(date_text.split()[2])
-
-	return [month, day]
 
 
 def filter_by_period(period):
@@ -67,44 +30,38 @@ def explore_emerging_topics(dataset_path, periods_path, saving_path):
 		appName("emerging_topics"). \
 		getOrCreate()
 
-	dataset = spark.read.csv(dataset_path, header=True).filter(F.col("date").isNotNull())
-
-	dataset = dataset.select("ID", transform_date("date").alias('date'), "text")
+	dataset = spark.read.parquet(dataset_path)
 
 	for index, period in tqdm(enumerate(periods)):
+
+		print("Start detecting emerging topics for period: ", period)
 		filtered_dataset = dataset.filter(filter_by_period(period)(F.col('date')))
 
-		preprocessed_dataset = filtered_dataset.select("ID", "date", text_preprocessing("text").alias("words"))\
-			.filter(F.col("text").isNotNull())
-
+		print("Fit tf-idf...")
 		cv = CountVectorizer(inputCol="words", outputCol="raw_features", vocabSize=30000, minDF=100, maxDF=10000)
-		cvmodel = cv.fit(preprocessed_dataset)
-		featurizedData = cvmodel.transform(preprocessed_dataset)
+		cvmodel = cv.fit(filtered_dataset)
+		featurizedData = cvmodel.transform(filtered_dataset)
 
 		idf = IDF(inputCol="raw_features", outputCol="features")
 		idfModel = idf.fit(featurizedData)
 		rescaledData = idfModel.transform(featurizedData)
 		vocabArray = cvmodel.vocabulary
 
-		# rescaledData.select("words", "features").show(truncate=False)
-
 		# Trains a LDA model.
+		print("Fit LDA...")
 		lda = LDA(k=5, maxIter=100, featuresCol="features", seed=13)
 		model = lda.fit(rescaledData)
 
-		# ll = model.logLikelihood(rescaledData)
-		# lp = model.logPerplexity(rescaledData)
-		# print("The lower bound on the log likelihood of the entire corpus: " + str(ll))
-		# print("The upper bound on perplexity: " + str(lp))
+		ll = model.logLikelihood(rescaledData)
+		print("The lower bound on the log likelihood of the entire corpus: " + str(ll))
 
 		# Describe topics.
-		# print("The topics described by their top-weighted terms:")
+		print("Extract topics, saving to ", os.path.join(saving_path, str(index) + "_period.json"))
 		word_numbers = 10
 		topics = model.describeTopics(maxTermsPerTopic=word_numbers).collect()
 
 		topics_to_save = {}
 		for topic in topics:
-			# print("Topic" + str(topic['topic']) + ":")
 			term_indices = topic['termIndices']
 			term_weights = topic['termWeights']
 			results = []
@@ -113,9 +70,6 @@ def explore_emerging_topics(dataset_path, periods_path, saving_path):
 				results.append((term, term_weight))
 
 			topics_to_save["topic" + str(topic['topic'])] = results
-			# for result in results:
-			# 	print(result)
-			# print('\n')
 
 		with open(os.path.join(saving_path, str(index) + "_period.json"), "w") as fout:
 			json.dump(topics_to_save, fout, indent=4)
@@ -128,7 +82,7 @@ if __name__ == '__main__':
 		"--dataset_path",
 		"-d",
 		help="path of the dataset",
-		default="preprocessing_us-pres-elections-2020/cleaned_tweets-us20oct-9nov"
+		default="preprocessing_us-pres-elections-2020/Hydrated_US_Tweets_preprocessed_emerging_topics"
 	)
 	parser.add_argument(
 		"--periods_path",
