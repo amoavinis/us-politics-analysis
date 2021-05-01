@@ -37,6 +37,12 @@ def explore_emerging_topics(dataset_path, periods_path, saving_path):
 		print("Start detecting emerging topics for period: ", period)
 		filtered_dataset = dataset.filter(filter_by_period(period)(F.col('date')))
 
+		num_tweets = filtered_dataset.count()
+		print("Number of tweets: ", num_tweets)
+		if num_tweets == 0:
+			print("No tweets for period:", period)
+			continue
+
 		print("Fit tf-idf...")
 		cv = CountVectorizer(inputCol="words", outputCol="raw_features", vocabSize=30000, minDF=100, maxDF=10000)
 		cvmodel = cv.fit(filtered_dataset)
