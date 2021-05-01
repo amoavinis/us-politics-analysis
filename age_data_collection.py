@@ -56,7 +56,7 @@ api = tweepy.API(auth)
 
 total_tweets = []
 
-if not os.path.exists('pretrained-models/user_age/tweet_userID.pkl'):
+if not os.path.exists('pretrained-models/user-age/tweet_userID.pkl'):
     for page in tweepy.Cursor(api.search, q='i am i\'m years old -filter:retweets',
                                tweet_mode='extended', count=100).pages():
         texts = [t._json['full_text'] for t in page if not t._json['retweeted']]
@@ -66,9 +66,9 @@ if not os.path.exists('pretrained-models/user_age/tweet_userID.pkl'):
 
         total_tweets = list(set(total_tweets))
         print(len(total_tweets), 'tweets collected')
-    pickle.dump(total_tweets, open('pretrained-models/user_age/tweet_userID.pkl', 'wb'))
+    pickle.dump(total_tweets, open('pretrained-models/user-age/tweet_userID.pkl', 'wb'))
 else:
-    total_tweets = pickle.load(open('pretrained-models/user_age/tweet_userID.pkl', 'rb'))
+    total_tweets = pickle.load(open('pretrained-models/user-age/tweet_userID.pkl', 'rb'))
 
 filtered_tweets = []
 filtered_users = []
@@ -88,7 +88,7 @@ all_tweets = []
 all_ages = []
 final_df = None
 
-if not os.path.exists('data/user_age_dataset.csv'):
+if not os.path.exists('data/user-age-dataset.csv'):
     i = 0
     for x in users_ages:
         print(round(100*i/len(users_ages), 2), '% done', sep='')
@@ -105,7 +105,7 @@ if not os.path.exists('data/user_age_dataset.csv'):
                 break
         i += 1
     final_df = pd.DataFrame(list(zip(all_tweets, all_ages)), columns=['text', 'age'])
-    final_df.to_csv('data/user_age_dataset.csv', index=False)
+    final_df.to_csv('data/user-age-dataset.csv', index=False)
 
         
         
