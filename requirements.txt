@@ -5,5 +5,5 @@ pyspark==3.1.1
 tqdm==4.60.0
 twarc==2.0.8
 nltk==3.6.2
-pickle
-tweepy
+textblob==0.15.3
+tweepy==3.10.0
