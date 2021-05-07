@@ -20,7 +20,7 @@ preprocessor.set_options(
 stop_words = set(stopwords.words('english'))
 punctuations = set(string.punctuation)
 stemmer = PorterStemmer()
-month_dir = {'Sep': 9, 'Oct': 10, 'Nov': 11}
+month_dir = {'Aug': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11}
 
 
 @F.udf(returnType=spark_types.ArrayType(spark_types.StringType()))
