@@ -15,6 +15,7 @@ output_file = args[2]
 ids = []
 tweets = []
 dates = []
+user_descriptions = []
 
 for filename in os.listdir(input_dir):
     the_file = input_dir + filename
@@ -31,10 +32,15 @@ for filename in os.listdir(input_dir):
             ids.append(int(data['id']))
             dates.append(data["created_at"])
 
-all_data = list(zip(ids, dates, tweets))
-all_data = sorted(all_data, key=lambda l:l[0])
+            if data["user"].get("description"):
+                user_descriptions.append(data["user"]["description"])
+            else:
+                user_descriptions.append(None)
 
-df = pandas.DataFrame(all_data, columns=['ID', 'date', 'text'])
+all_data = list(zip(ids, dates, tweets, user_descriptions))
+#all_data = sorted(all_data, key=lambda l:l[0])
+
+df = pandas.DataFrame(all_data, columns=['ID', 'date', 'text', 'user_description'])
 df.to_json(output_file, orient='records')
 
 
