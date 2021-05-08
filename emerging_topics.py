@@ -8,8 +8,6 @@ from pyspark.ml.clustering import LDA
 from pyspark.sql import types as spark_types
 from tqdm import tqdm
 
-month_dir = {'Sep': 9, 'Oct': 10, 'Nov': 11}
-
 
 def filter_by_period(period):
 	def f(date):
@@ -57,9 +55,11 @@ def explore_emerging_topics(dataset_path, periods_path, saving_path):
 		print("Fit LDA...")
 		lda = LDA(k=5, maxIter=100, featuresCol="features", seed=13)
 		model = lda.fit(rescaledData)
-
 		ll = model.logLikelihood(rescaledData)
 		print("The lower bound on the log likelihood of the entire corpus: " + str(ll))
+
+		transformed = model.transform(rescaledData)
+		transformed.select("id", "topicDistribution").write.json(os.path.join(saving_path, str(index) + "_period"), mode="overwrite")
 
 		# Describe topics.
 		print("Extract topics, saving to ", os.path.join(saving_path, str(index) + "_period.json"))

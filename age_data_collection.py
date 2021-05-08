@@ -93,16 +93,20 @@ if not os.path.exists('data/user-age-dataset.csv'):
     for x in users_ages:
         print(round(100*i/len(users_ages), 2), '% done', sep='')
         n_pages = 0
-        for page in tweepy.Cursor(api.user_timeline, user_id=x[0],
-                                  tweet_mode='extended', count=100,
-                                  include_rts=False).pages():
-            texts = [t._json['full_text'] for t in page if not t._json['retweeted']]
-            ages = [x[1]]*len(texts)
-            all_tweets.extend(texts)
-            all_ages.extend(ages)
-            n_pages += 1
-            if n_pages==3:
-                break
+        try:
+            for page in tweepy.Cursor(api.user_timeline, user_id=x[0],
+                                    tweet_mode='extended', count=100,
+                                    include_rts=False).pages():
+                texts = [t._json['full_text'] for t in page if not t._json['retweeted']]
+                texts = [t.replace(';', '') for t in texts]
+                ages = [x[1]]*len(texts)
+                all_tweets.extend(texts)
+                all_ages.extend(ages)
+                n_pages += 1
+                if n_pages==3:
+                    break
+        except:
+            time.sleep(900)
         i += 1
     final_df = pd.DataFrame(list(zip(all_tweets, all_ages)), columns=['text', 'age'])
     final_df.to_csv('data/user-age-dataset.csv', index=False)

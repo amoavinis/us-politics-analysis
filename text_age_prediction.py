@@ -1,9 +1,11 @@
-from sklearn.neural_network import MLPClassifier, MLPRegressor
+from sklearn.neural_network import MLPClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import f1_score, accuracy_score
 from sklearn.decomposition import TruncatedSVD
+from sklearn.pipeline import Pipeline
+import joblib
 import pickle
 import numpy as np
 import pandas as pd
@@ -19,39 +21,35 @@ def convert_age(n):
     else:
         return 3
 
+def get_pipeline():
+    vec = TfidfVectorizer()
+    svd = TruncatedSVD(n_components=512, random_state=0)
+    scaler = MinMaxScaler((-1, 1))
+    model = MLPClassifier((100, 30), momentum=0.99, max_iter=500, random_state=0)
+    pipeline = Pipeline(steps=[('tfidf', vec), ('svd', svd), ('scaler', scaler), ('mlp', model)])
+
+    return pipeline
+
 
 data = pd.read_csv('data/user-age-dataset.csv')
 
 X, y = data['text'], data['age']
 y = [convert_age(n) for n in y]
-x_train, x_test, y_train, y_test = train_test_split(X, y) 
+x_train, x_test, y_train, y_test = train_test_split(X, y, random_state=0) 
 print("Loaded and split data")
 
-vec = TfidfVectorizer()
-x_train = vec.fit_transform(x_train)
-x_test = vec.transform(x_test)
+pipeline = get_pipeline()
 
-svd = TruncatedSVD(n_components=512)
-x_train = svd.fit_transform(x_train)
-x_test = svd.transform(x_test)
-print("TFIDF transformation and SVD reduction completed")
-
-scaler = MinMaxScaler((-1, 1))
-x_train = scaler.fit_transform(x_train)
-x_test = scaler.transform(x_test)
-print("Scaling completed")
-
-if not os.path.exists('pretrained-models/user-age/text_age_classifier.pkl'):
-    model = MLPClassifier((100, 30), momentum=0.99, max_iter=500, random_state=0)
-    model.fit(x_train, y_train)
-    pickle.dump(model, open('pretrained-models/user-age/text_age_classifier.pkl', 'wb'))
-    print("Model trained")
+if not os.path.exists('pretrained-models/user-age/text_age_pipeline.pkl'):
+    pipeline.fit(x_train, y_train)
+    pickle.dump(pipeline, open('pretrained-models/user-age/text_age_pipeline.pkl', 'wb'))
+    print("Training completed")
 else:
-    model = pickle.load(open('pretrained-models/user-age/text_age_classifier.pkl', 'rb'))
-    print("Model loaded from pickle file")
+    pipeline = pickle.load(open('pretrained-models/user-age/text_age_pipeline.pkl', 'rb'))
+    print("Pipeline loaded from pickle file")
 
-y_train_pred = model.predict(x_train)
-y_pred = model.predict(x_test)
+y_train_pred = pipeline.predict(x_train)
+y_pred = pipeline.predict(x_test)
 
 train_f1 = f1_score(y_train, y_train_pred, average='macro')
 train_accuracy = accuracy_score(y_train, y_train_pred)
