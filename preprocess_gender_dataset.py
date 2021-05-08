@@ -49,5 +49,8 @@ df['processed_text'] = df['text'].astype("str")\
     .str.lower()\
     .apply(remove_punctuations)
 
+# Convert labels
+df["gender"] = df["gender"].replace({"male": 0, "female": 1})
+
 # Save preprocessed dataset
 df.to_pickle("data/preprocessed_gender_classifier_dataset.pkl")
