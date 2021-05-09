@@ -1,6 +1,9 @@
 # Datasets
 data/
 
+# Pickle user age model since it's too large to be version controlled
+pretrained-models/user-age/
+
 # IDE configs
 .idea/
 .vscode/
