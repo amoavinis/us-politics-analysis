@@ -14,9 +14,8 @@ if __name__ == "__main__":
     with open('pretrained-models/gender/clf.pkl', 'rb') as f:
         gender_model = pickle.load(f)
 
-    # political orientation model is saved via joblib instead of pickle
     with open('pretrained-models/political-orientation/model.pkl', 'rb') as f:
-        political_model = joblib.load(f)
+        political_model = pickle.load(f)
 
     with open('pretrained-models/user-age/text_age_pipeline.pkl', 'rb') as f:
         age_model = pickle.load(f)
