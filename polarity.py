@@ -29,29 +29,32 @@ def detect_sentiment(df, tweet_col='text', processed_col='cleaned_text'):
 
     if processed_col not in df.columns:
         df['cleaned_text'] = df['text']\
-            .apply(preprocessor.clean)\
+            .progress_apply(preprocessor.clean)\
             .str.lower()\
-            .apply(remove_punctuations)
+            .progress_apply(remove_punctuations)
     else:
         df = df.rename(columns={processed_col: 'cleaned_text'})
     
-    df['raw_sentiment'] = df['cleaned_text'].apply(lambda tweet: analyzer.polarity_scores(tweet))
+    print("Finding raw sentiment")
+    df['raw_sentiment'] = df['cleaned_text'].progress_apply(lambda tweet: analyzer.polarity_scores(tweet))
+    print("Finding total sentiment")
     df['total_sentiment'] = df['raw_sentiment']\
-                                .apply(lambda score_dict: score_dict['compound'])\
-                                .apply(lambda compound: compound_to_sentiment(compound))
+                                .progress_apply(lambda score_dict: score_dict['compound'])\
+                                .progress_apply(lambda compound: compound_to_sentiment(compound))
     return df
 
 
 def detect_subjectivity(df, tweet_col='text', processed_col='cleaned_text'):
     if processed_col not in df.columns:
         df['cleaned_text'] = df['text']\
-            .apply(preprocessor.clean)\
+            .progress_apply(preprocessor.clean)\
             .str.lower()\
-            .apply(remove_punctuations)
+            .progress_apply(remove_punctuations)
     else:
         df = df.rename(columns={processed_col: 'cleaned_text'})
     
-    df['subjectivity'] = df['cleaned_text'].apply(lambda tweet: TextBlob(tweet).subjectivity)
+    print("Finding subjectivity")
+    df['subjectivity'] = df['cleaned_text'].progress_apply(lambda tweet: TextBlob(tweet).subjectivity)
     return df
 
 

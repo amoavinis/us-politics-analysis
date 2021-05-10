@@ -2,13 +2,40 @@ import pandas as pd
 import pickle
 import joblib
 
+from tqdm import tqdm
+
 from polarity import detect_sentiment, detect_subjectivity
 
 
-if __name__ == "__main__":
-    df = pd.read_pickle('tweets.pkl')
+def apply_gender(df):
+    df['gender'] = df['text'].progress_apply(lambda text: gender_model.predict([text])[0])
+    df.to_pickle('data/inferences/tweets-with-gender.pkl')
 
-    df = df.sample(20, random_state=0)
+
+def apply_political(df):
+    df['political'] = df['text'].progress_apply(lambda text: political_model.predict([text])[0])
+    df.to_pickle('data/inferences/tweets-with-political.pkl')
+
+
+def apply_age(df):
+    df['age'] = df['text'].progress_apply(lambda text: age_model.predict([text])[0])
+    df.to_pickle('data/inferences/tweets-with-age.pkl')
+
+
+def apply_sentiment(df):
+    df = detect_sentiment(df)
+    df.to_pickle('data/inferences/tweets-with-sentiment.pkl')
+   
+
+def apply_subjectivity(df):
+    df = detect_subjectivity(df)
+    df.to_pickle('data/inferences/tweets-with-subj.pkl')
+
+
+if __name__ == "__main__":
+    tqdm.pandas()
+
+    df = pd.read_pickle('data/tweets-us-all.pkl')
     
     # Load the 3 models
     with open('pretrained-models/gender/clf.pkl', 'rb') as f:
@@ -19,15 +46,18 @@ if __name__ == "__main__":
 
     with open('pretrained-models/user-age/text_age_pipeline.pkl', 'rb') as f:
         age_model = pickle.load(f)
+    
+    print("Political orientation predictions...")
+    apply_political(df)
 
-    # We use the 0 index to return just prediction instead of array
-    df['gender'] = df['text'].apply(lambda text: gender_model.predict([text])[0])
-    df['political'] = df['text'].apply(lambda text: political_model.predict([text])[0])
-    df['age'] = df['text'].apply(lambda text: age_model.predict([text])[0])
+    print("Gender predictions...")
+    apply_gender(df)
 
-    # Populate with sentiment
-    df = detect_sentiment(df)
-    # Populate with subjectivity
-    df = detect_subjectivity(df)
+    print("Sentiment predictions...")
+    apply_sentiment(df)
 
-    print(df)
+    print("Subjectivity predictions...")
+    apply_subjectivity(df)
+    
+    print("Age predictions...")
+    apply_age(df)
