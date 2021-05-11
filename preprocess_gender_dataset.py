@@ -14,7 +14,7 @@ df = pd.read_csv("data/gender_classifier_dataset.csv")
 print(df)
 
 # Keep only gender, confidence, and text columns
-df = df[["gender", "gender:confidence", "text"]]
+df = df[["gender", "gender:confidence", "text", "description"]]
 
 # Print class counts
 print(df["gender"].value_counts())
@@ -43,8 +43,28 @@ print(df["gender:confidence"].value_counts())
 # Keep only most condident annotations
 df = df[df["gender:confidence"] == 1]
 
+# drop rows that have both missing text and description
+df = df.dropna(axis=0, how="all", subset=["text", "description"])
+
+# fill remaining na
+df["text"] = df["text"].fillna("")
+df["description"] = df["description"].fillna("")
+
+# create text + description column
+df["both"] = df[["text", "description"]].apply(lambda x: x[0] + "." + x[1], axis=1)
+
 # Preprocess tweets
 df['processed_text'] = df['text'].astype("str")\
+    .apply(preprocessor.clean)\
+    .str.lower()\
+    .apply(remove_punctuations)
+
+df['processed_description'] = df['description'].astype("str")\
+    .apply(preprocessor.clean)\
+    .str.lower()\
+    .apply(remove_punctuations)
+
+df['processed_both'] = df['both'].astype("str")\
     .apply(preprocessor.clean)\
     .str.lower()\
     .apply(remove_punctuations)
@@ -54,3 +74,5 @@ df["gender"] = df["gender"].replace({"male": 0, "female": 1})
 
 # Save preprocessed dataset
 df.to_pickle("data/preprocessed_gender_classifier_dataset.pkl")
+
+print(df.columns)
