@@ -24,7 +24,7 @@ print("Loaded and split data")
 
 pipeline = get_pipeline()
 
-if os.path.exists('pretrained-models/user-age/text_age_pipeline.pkl'):
+if not os.path.exists('pretrained-models/user-age/text_age_pipeline.pkl'):
     pipeline.fit(x_train, y_train, xgb__eval_metric='logloss')
     pickle.dump(pipeline, open('pretrained-models/user-age/text_age_pipeline.pkl', 'wb'))
     print("Training completed")
