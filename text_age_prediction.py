@@ -5,18 +5,8 @@ from sklearn.preprocessing import MaxAbsScaler
 from sklearn.metrics import f1_score, accuracy_score
 from sklearn.pipeline import Pipeline
 import pickle
-import pandas as pd
 import os
-
-def convert_age(n):
-    if n<25:
-        return 0
-    elif n<45:
-        return 1
-    elif n<65:
-        return 2
-    else:
-        return 3
+import pandas as pd
 
 def get_pipeline():
     vec = TfidfVectorizer()
@@ -26,17 +16,15 @@ def get_pipeline():
 
     return pipeline
 
-
-data = pd.read_csv('data/user-age-dataset.csv')
+data = pd.read_csv("data/preprocessed-user-age-dataset.csv")
 
 X, y = data['text'], data['age']
-y = [convert_age(n) for n in y]
-x_train, x_test, y_train, y_test = train_test_split(X, y, random_state=0) 
+x_train, x_test, y_train, y_test = train_test_split(X, y, random_state=0, train_size=0.7) 
 print("Loaded and split data")
 
 pipeline = get_pipeline()
 
-if not os.path.exists('pretrained-models/user-age/text_age_pipeline.pkl'):
+if os.path.exists('pretrained-models/user-age/text_age_pipeline.pkl'):
     pipeline.fit(x_train, y_train, xgb__eval_metric='logloss')
     pickle.dump(pipeline, open('pretrained-models/user-age/text_age_pipeline.pkl', 'wb'))
     print("Training completed")

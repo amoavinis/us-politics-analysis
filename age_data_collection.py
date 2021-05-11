@@ -1,6 +1,5 @@
 import tweepy
 import time
-import pickle
 import os
 import re
 import itertools
@@ -31,12 +30,9 @@ def find_number(text):
     numbers = [int(t) for t in tokens if t.isnumeric()]
     if len(numbers)==1 and numbers[0] > 10 and numbers[0]<110:
         return numbers[0]
-    else:
-        return -1
     strs = number_strs()
     for l in strs:
         if list_in_str(l, result.group(1)):
-            print(l)
             if len(l)==2:
                 return tens_dict[l[0]]+ones_dict[l[1]]
             elif len(l)==1 and l[0] in tens:
@@ -45,30 +41,38 @@ def find_number(text):
                 return ones_dict[l[0]]
             elif len(l)==1 and l[0] in teens:
                 return teens_dict[l[0]]
-    return -1    
+    return -1   
 
-auth = tweepy.OAuthHandler("ye96m2gBpTiiUeI4xketoyRzv",
-                           "rZZXot74QF83Yw6ZvAhxEtmw0zNERhq8iODvduw4c0FiRBhElH")
-auth.set_access_token("744629802427105280-cuTvt0digJkX7mqogTEfvSnduztwsG7",
-                      "rl5MJ63PmPtIfXNfke6hpzvLiqSwdMeRtaZs7tZ1rFPY8")
+def convert_age(n):
+    if n<25:
+        return 0
+    elif n<45:
+        return 1
+    elif n<65:
+        return 2
+    else:
+        return 3 
+
+auth = tweepy.OAuthHandler("yO0XoCwZV0DackSTcKpRzL3ql",
+                           "rUAQ1lV6Dr6xOsGpCqXJfM6xvDBmlb3JztKv6Xxrsvx61CySPF")
+auth.set_access_token("744629802427105280-UwPUjmhczBveAE8WFY3w9Hzq8EFCWWj",
+                      "6pr3WbJhTmtN97XGBsVCw4lb89EpfuPGA4VywgSgS3m2o")
 
 api = tweepy.API(auth)
 
 total_tweets = []
 
-if not os.path.exists('pretrained-models/user-age/tweet_userID.pkl'):
-    for page in tweepy.Cursor(api.search, q='i am i\'m years old -filter:retweets',
-                               tweet_mode='extended', count=100).pages():
-        texts = [t._json['full_text'] for t in page if not t._json['retweeted']]
-        users = [t._json['user']['id'] for t in page if not t._json['retweeted']]  
 
-        total_tweets.extend(list(zip(texts, users)))
+for page in tweepy.Cursor(api.search, q='i am i\'m years old -filter:retweets',
+                            tweet_mode='extended', count=100).pages():
+    texts = [t._json['full_text'] for t in page if not t._json['retweeted']]
+    users = [t._json['user']['id'] for t in page if not t._json['retweeted']]  
 
-        total_tweets = list(set(total_tweets))
-        print(len(total_tweets), 'tweets collected')
-    pickle.dump(total_tweets, open('pretrained-models/user-age/tweet_userID.pkl', 'wb'))
-else:
-    total_tweets = pickle.load(open('pretrained-models/user-age/tweet_userID.pkl', 'rb'))
+    total_tweets.extend(list(zip(texts, users)))
+
+    total_tweets = list(set(total_tweets))
+    print(len(total_tweets), 'tweets collected')
+
 
 filtered_tweets = []
 filtered_users = []
@@ -88,7 +92,7 @@ all_tweets = []
 all_ages = []
 final_df = None
 
-if not os.path.exists('data/user-age-dataset.csv'):
+if os.path.exists('data/user-age-dataset.csv'):
     i = 0
     for x in users_ages:
         print(round(100*i/len(users_ages), 2), '% done', sep='')
@@ -109,8 +113,7 @@ if not os.path.exists('data/user-age-dataset.csv'):
             time.sleep(900)
         i += 1
     final_df = pd.DataFrame(list(zip(all_tweets, all_ages)), columns=['text', 'age'])
-    final_df.to_csv('data/user-age-dataset.csv', index=False)
 
-        
-        
-
+final_df['age'] = final_df['age'].astype(int)\
+    .apply(convert_age)
+final_df.to_csv('data/user-age-dataset.csv', index=False)
