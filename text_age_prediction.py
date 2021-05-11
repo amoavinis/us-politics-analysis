@@ -1,11 +1,12 @@
 from sklearn.neural_network import MLPClassifier
+import xgboost
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, MaxAbsScaler
 from sklearn.metrics import f1_score, accuracy_score
 from sklearn.decomposition import TruncatedSVD
 from sklearn.pipeline import Pipeline
-import joblib
 import pickle
 import numpy as np
 import pandas as pd
@@ -23,10 +24,10 @@ def convert_age(n):
 
 def get_pipeline():
     vec = TfidfVectorizer()
-    svd = TruncatedSVD(n_components=512, random_state=0)
-    scaler = MinMaxScaler((-1, 1))
-    model = MLPClassifier((100, 30), momentum=0.99, max_iter=500, random_state=0)
-    pipeline = Pipeline(steps=[('tfidf', vec), ('svd', svd), ('scaler', scaler), ('mlp', model)])
+    svd = TruncatedSVD(n_components=256, random_state=0)
+    scaler = MaxAbsScaler()
+    xgb = xgboost.XGBClassifier(n_estimators=1500, use_label_encoder=False)
+    pipeline = Pipeline(steps=[('tfidf', vec), ('scaler', scaler), ('xgb', xgb)])
 
     return pipeline
 
@@ -40,8 +41,8 @@ print("Loaded and split data")
 
 pipeline = get_pipeline()
 
-if not os.path.exists('pretrained-models/user-age/text_age_pipeline.pkl'):
-    pipeline.fit(x_train, y_train)
+if os.path.exists('pretrained-models/user-age/text_age_pipeline.pkl'):
+    pipeline.fit(x_train, y_train, xgb__eval_metric='logloss')
     pickle.dump(pipeline, open('pretrained-models/user-age/text_age_pipeline.pkl', 'wb'))
     print("Training completed")
 else:
