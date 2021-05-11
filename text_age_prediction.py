@@ -1,4 +1,4 @@
-import xgboost
+from sklearn.naive_bayes import MultinomialNB
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import MaxAbsScaler
@@ -11,8 +11,8 @@ import pandas as pd
 def get_pipeline():
     vec = TfidfVectorizer()
     scaler = MaxAbsScaler()
-    xgb = xgboost.XGBClassifier(n_estimators=2000, use_label_encoder=False, n_jobs=8)
-    pipeline = Pipeline(steps=[('tfidf', vec), ('scaler', scaler), ('xgb', xgb)])
+    nb = MultinomialNB()
+    pipeline = Pipeline(steps=[('tfidf', vec), ('scaler', scaler), ('nb', nb)])
 
     return pipeline
 
@@ -25,7 +25,7 @@ print("Loaded and split data")
 pipeline = get_pipeline()
 
 if not os.path.exists('pretrained-models/user-age/text_age_pipeline.pkl'):
-    pipeline.fit(x_train, y_train, xgb__eval_metric='logloss')
+    pipeline.fit(x_train, y_train)
     pickle.dump(pipeline, open('pretrained-models/user-age/text_age_pipeline.pkl', 'wb'))
     print("Training completed")
 else:
