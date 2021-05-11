@@ -16,7 +16,7 @@ def get_pipeline():
 
     return pipeline
 
-data = pd.read_csv("data/preprocessed-user-age-dataset.csv")
+data = pd.read_csv("data/user-age-dataset.csv")
 
 X, y = data['text'], data['age']
 x_train, x_test, y_train, y_test = train_test_split(X, y, random_state=0, train_size=0.7) 
