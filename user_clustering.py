@@ -37,7 +37,14 @@ if __name__ == "__main__":
             reducted_text = pickle.load(f)
 
     kmeans = MiniBatchKMeans(n_clusters=CLUSTERS, random_state=1, max_iter=3, verbose=1)
-    predicted_labels = kmeans.fit_predict(reducted_text)
+    
+    kmeans.fit(reducted_text)
+
+    # Save fitted model
+    with open('data/user-clustering/kmeans-{}.pkl'.format(CLUSTERS), 'wb') as f:
+        pickle.dump(kmeans, f)
+
+    predicted_labels = kmeans.predict(reducted_text)
 
     print("Silhouette score:", silhouette_score(reducted_text, predicted_labels, random_state=1))
 
