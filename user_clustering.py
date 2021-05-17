@@ -4,12 +4,13 @@ import pandas as pd
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.decomposition import TruncatedSVD
-from sklearn.cluster import MiniBatchKMeans
-from sklearn.metrics import silhouette_score
+from sklearn.cluster import KMeans
+from sklearn.metrics import calinski_harabasz_score
+from tqdm import tqdm
 
 
 if __name__ == "__main__":
-    CLUSTERS = 2
+    CLUSTERS = [i for i in range(2, 11)] # 2 to 10 clusters to evaluate
     REDUCTED_TEXT_FOLDER = 'data/user-clustering/'
     DIM_REDUCTION = 10
     REDUCTED_TEXT_FILE = REDUCTED_TEXT_FOLDER + 'reducted-txt-' + str(DIM_REDUCTION) + '.pkl'
@@ -36,15 +37,18 @@ if __name__ == "__main__":
         with open(REDUCTED_TEXT_FILE, 'rb') as f:
             reducted_text = pickle.load(f)
 
-    kmeans = MiniBatchKMeans(n_clusters=CLUSTERS, random_state=1, max_iter=2, verbose=1)
-    
-    kmeans.fit(reducted_text)
+    scores_clusters = list()
+    for cluster in tqdm(CLUSTERS):
+        kmeans = KMeans(n_clusters=cluster)
 
-    # Save fitted model
-    with open('data/user-clustering/kmeans-{}.pkl'.format(CLUSTERS), 'wb') as f:
-        pickle.dump(kmeans, f)
+        kmeans.fit(reducted_text)
 
-    predicted_labels = kmeans.predict(reducted_text)
+        predicted_labels = kmeans.labels_
 
-    print("Silhouette score:", silhouette_score(reducted_text, predicted_labels, random_state=1))
+        score = calinski_harabasz_score(reducted_text, predicted_labels)
+        
+        score_cluster = (cluster, score)
+        scores_clusters.append(score_cluster)
 
+    print("Scores per number of clusters")
+    print(scores_clusters)
