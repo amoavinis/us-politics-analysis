@@ -36,7 +36,7 @@ if __name__ == "__main__":
         with open(REDUCTED_TEXT_FILE, 'rb') as f:
             reducted_text = pickle.load(f)
 
-    kmeans = MiniBatchKMeans(n_clusters=CLUSTERS, random_state=1, max_iter=3, verbose=1)
+    kmeans = MiniBatchKMeans(n_clusters=CLUSTERS, random_state=1, max_iter=2, verbose=1)
     
     kmeans.fit(reducted_text)
 
