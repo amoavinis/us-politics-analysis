@@ -37,13 +37,20 @@ for filename in os.listdir(input_dir):
             # get user id and description
             if data["user"].get("description"):
                 user_descriptions.append(data["user"]["description"])
+            else:
+                user_descriptions.append("")
+
+            if data["user"].get("id"):
+                user_descriptions.append(data["user"]["description"])
                 user_ids.append(data["user"]["id"])
             else:
-                user_descriptions.append(None)
+                user_ids.append(None)
             
             # get retweet graph edge (retweeter id, original user id)
-            if data.get("retweeted_status"):
+            if data["user"].get("id") and data.get('retweeted_status'):
                 retweet_graph_edges.append((int(data["user"]["id"]), int(data["retweeted_status"]["user"]["id"])))
+            else:
+                retweet_graph_edges.append(None)
             
 
 all_data = list(zip(ids, dates, tweets, user_descriptions, user_ids, retweet_graph_edges))
