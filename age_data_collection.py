@@ -44,24 +44,23 @@ def find_number(text):
     return -1   
 
 def convert_age(n):
-    if n<25:
+    if n>=18 and n<=29:
         return 0
-    elif n<45:
+    elif n<=49:
         return 1
-    elif n<65:
+    elif n<=65:
         return 2
     else:
         return 3 
 
-auth = tweepy.OAuthHandler("yO0XoCwZV0DackSTcKpRzL3ql",
-                           "rUAQ1lV6Dr6xOsGpCqXJfM6xvDBmlb3JztKv6Xxrsvx61CySPF")
-auth.set_access_token("744629802427105280-UwPUjmhczBveAE8WFY3w9Hzq8EFCWWj",
-                      "6pr3WbJhTmtN97XGBsVCw4lb89EpfuPGA4VywgSgS3m2o")
+auth = tweepy.OAuthHandler("pXRm7Xnvi3O0aH9QVWAL0YzOa",
+                           "fHOM7FZoPF0M6xPnL3VknHbuRDOYBHrc8AuRDljXjJsFTF1Wyw")
+auth.set_access_token("744629802427105280-imy8tMAsHzAgl3bqAR4E7mzhov3QwaC",
+                      "V5OcUmsN4HkLh0IfwZ7dNlNGWKCWws7DcNwQSdluFqGuk")
 
 api = tweepy.API(auth)
 
 total_tweets = []
-
 
 for page in tweepy.Cursor(api.search, q='i am i\'m years old -filter:retweets',
                             tweet_mode='extended', count=100).pages():
@@ -82,7 +81,7 @@ for i in range(len(total_tweets)):
     text = total_tweets[i][0]
     user = total_tweets[i][1]
     age = find_number(text)
-    if age > -1:
+    if age >= 18:
         filtered_tweets.append(text)
         filtered_users.append(user)
         filtered_ages.append(age)
@@ -92,28 +91,27 @@ all_tweets = []
 all_ages = []
 final_df = None
 
-if os.path.exists('data/user-age-dataset.csv'):
+if not os.path.exists('data/user-age-dataset.csv'):
     i = 0
     for x in users_ages:
         print(round(100*i/len(users_ages), 2), '% done', sep='')
         n_pages = 0
-        try:
-            for page in tweepy.Cursor(api.user_timeline, user_id=x[0],
-                                    tweet_mode='extended', count=100,
-                                    include_rts=False).pages():
-                texts = [t._json['full_text'] for t in page if not t._json['retweeted']]
-                texts = [t.replace(';', '') for t in texts]
-                ages = [x[1]]*len(texts)
-                all_tweets.extend(texts)
-                all_ages.extend(ages)
-                n_pages += 1
-                if n_pages==3:
-                    break
-        except:
-            time.sleep(900)
+
+        for page in tweepy.Cursor(api.user_timeline, user_id=x[0],
+                                tweet_mode='extended', count=100,
+                                include_rts=False).pages():
+            texts = [t._json['full_text'] for t in page if not t._json['retweeted']]
+            texts = [t.replace(';', '') for t in texts]
+            ages = [x[1]]*len(texts)
+            all_tweets.extend(texts)
+            all_ages.extend(ages)
+            n_pages += 1
+            if n_pages==3:
+                break
+
         i += 1
     final_df = pd.DataFrame(list(zip(all_tweets, all_ages)), columns=['text', 'age'])
 
-final_df['age'] = final_df['age'].astype(int)\
-    .apply(convert_age)
-final_df.to_csv('data/user-age-dataset.csv', index=False)
+    final_df['age'] = final_df['age'].astype(int)\
+        .apply(convert_age)
+    final_df.to_csv('data/user-age-dataset.csv', index=False)
