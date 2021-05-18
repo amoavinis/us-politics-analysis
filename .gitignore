@@ -1,6 +1,9 @@
 # Datasets
 data/
 
+# Big pretrained-models
+pretrained-models/user-clustering/
+
 # IDE configs
 .idea/
 .vscode/

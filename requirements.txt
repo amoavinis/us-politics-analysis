@@ -8,3 +8,4 @@ nltk==3.6.2
 textblob==0.15.3
 tweepy==3.10.0
 xgboost==1.4.1
+plotly==4.14.3

@@ -1,11 +1,15 @@
 import os
 import pickle
+from numpy import tile
 import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
 
+from plotly.subplots import make_subplots
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.decomposition import TruncatedSVD
 from sklearn.cluster import KMeans
-from sklearn.metrics import calinski_harabasz_score
+from sklearn.metrics import calinski_harabasz_score, davies_bouldin_score
 from tqdm import tqdm
 
 
@@ -37,18 +41,41 @@ if __name__ == "__main__":
         with open(REDUCTED_TEXT_FILE, 'rb') as f:
             reducted_text = pickle.load(f)
 
-    scores_clusters = list()
-    for cluster in tqdm(CLUSTERS):
-        kmeans = KMeans(n_clusters=cluster)
-
-        kmeans.fit(reducted_text)
+    ch_scores_clusters = list()
+    db_scores_clusters = list()
+    inertias = list()
+    for k in tqdm(CLUSTERS):
+        if os.path.exists('pretrained-models/user-clustering/{}-means.pkl'.format(k)):
+            print("Loading {}-means model".format(k))
+            kmeans = pickle.load(open('pretrained-models/user-clustering/{}-means.pkl'.format(k), 'rb'))
+        else:
+            print("Training {}-means model".format(k))
+            kmeans = KMeans(n_clusters=k, random_state=1)
+            kmeans.fit(reducted_text)
+            pickle.dump(kmeans, open('pretrained-models/user-clustering/{}-means.pkl'.format(k), 'wb'))
 
         predicted_labels = kmeans.labels_
+        inertia = kmeans.inertia_
 
-        score = calinski_harabasz_score(reducted_text, predicted_labels)
-        
-        score_cluster = (cluster, score)
-        scores_clusters.append(score_cluster)
+        ch_score = calinski_harabasz_score(reducted_text, predicted_labels)
+        ch_scores_clusters.append(ch_score)
 
-    print("Scores per number of clusters")
-    print(scores_clusters)
+        db_score = davies_bouldin_score(reducted_text, predicted_labels)
+        db_scores_clusters.append(db_score)
+
+        inertias.append(inertia)
+    print("Scores per number of clusters:\n")
+    # print("Calinski-harabasz:", ch_scores_clusters)
+    # print("Davies-bouldin:", db_scores_clusters)
+    
+    
+    sub_titles = [
+        'Number of clusters VS Inertia',
+        'Number of clusters VS Calinski-Harabasz',
+        'Number of clusters VS Davies-bouldin'
+    ]
+    fig = make_subplots(rows=3, cols=1, subplot_titles=sub_titles)
+    fig.add_trace(go.Scatter(x=CLUSTERS, y=inertias), row=1, col=1)
+    fig.add_trace(go.Scatter(x=CLUSTERS, y=ch_scores_clusters), row=2, col=1)
+    fig.add_trace(go.Scatter(x=CLUSTERS, y=db_scores_clusters), row=3, col=1)
+    fig.show()
