@@ -13,12 +13,7 @@ from sklearn.metrics import calinski_harabasz_score, davies_bouldin_score
 from tqdm import tqdm
 
 
-if __name__ == "__main__":
-    CLUSTERS = [i for i in range(2, 11)] # 2 to 10 clusters to evaluate
-    REDUCTED_TEXT_FOLDER = 'data/user-clustering/'
-    DIM_REDUCTION = 10
-    REDUCTED_TEXT_FILE = REDUCTED_TEXT_FOLDER + 'reducted-txt-' + str(DIM_REDUCTION) + '.pkl'
-
+def get_preprocessed_users_text():
     if not os.path.exists(REDUCTED_TEXT_FOLDER):
         os.mkdir(REDUCTED_TEXT_FOLDER)
 
@@ -40,7 +35,11 @@ if __name__ == "__main__":
         print("Loading reducted text...")
         with open(REDUCTED_TEXT_FILE, 'rb') as f:
             reducted_text = pickle.load(f)
+    
+    return reducted_text
+            
 
+def visually_determine_best_k_clusters(reducted_text):
     ch_scores_clusters = list()
     db_scores_clusters = list()
     inertias = list()
@@ -64,18 +63,29 @@ if __name__ == "__main__":
         db_scores_clusters.append(db_score)
 
         inertias.append(inertia)
-    print("Scores per number of clusters:\n")
-    # print("Calinski-harabasz:", ch_scores_clusters)
-    # print("Davies-bouldin:", db_scores_clusters)
-    
-    
+
     sub_titles = [
         'Number of clusters VS Inertia',
-        'Number of clusters VS Calinski-Harabasz',
-        'Number of clusters VS Davies-bouldin'
+        'Number of clusters VS Calinski-Harabasz (More is better)',
+        'Number of clusters VS Davies-bouldin (Less is better)'
     ]
     fig = make_subplots(rows=3, cols=1, subplot_titles=sub_titles)
     fig.add_trace(go.Scatter(x=CLUSTERS, y=inertias), row=1, col=1)
     fig.add_trace(go.Scatter(x=CLUSTERS, y=ch_scores_clusters), row=2, col=1)
     fig.add_trace(go.Scatter(x=CLUSTERS, y=db_scores_clusters), row=3, col=1)
     fig.show()
+
+
+def get_wordclouds_in_clusters(k):
+    pass
+
+
+if __name__ == "__main__":
+    CLUSTERS = [i for i in range(2, 11)] # 2 to 10 clusters to evaluate
+    REDUCTED_TEXT_FOLDER = 'data/user-clustering/'
+    DIM_REDUCTION = 10
+    REDUCTED_TEXT_FILE = REDUCTED_TEXT_FOLDER + 'reducted-txt-' + str(DIM_REDUCTION) + '.pkl'
+
+    data = get_preprocessed_users_text()
+    visually_determine_best_k_clusters(data)
+    
