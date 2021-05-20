@@ -1,7 +1,8 @@
 import os
 import pickle
-from numpy import tile
+from numpy import right_shift, tile
 import pandas as pd
+import matplotlib.pyplot as plt
 import plotly.express as px
 import plotly.graph_objects as go
 
@@ -11,6 +12,7 @@ from sklearn.decomposition import TruncatedSVD
 from sklearn.cluster import KMeans
 from sklearn.metrics import calinski_harabasz_score, davies_bouldin_score
 from tqdm import tqdm
+from wordcloud import WordCloud, STOPWORDS
 
 
 def get_preprocessed_users_text():
@@ -77,7 +79,39 @@ def visually_determine_best_k_clusters(reducted_text):
 
 
 def get_wordclouds_in_clusters(k):
-    pass
+    DEST_IMG_FOLDER = 'clusters/'
+
+    if not os.path.exists(DEST_IMG_FOLDER):
+        os.mkdir(DEST_IMG_FOLDER)
+
+    df_sent = pd.read_pickle('data/inferences/tweets-with-sentiment.pkl')
+    text_df = df_sent[['ID', 'cleaned_text']]
+    
+    with open(REDUCTED_TEXT_FILE, 'rb') as f:
+        reducted_text = pickle.load(f)
+    
+    indexes = range(0, 1077456)  # 1 till 1077456
+    reducted_text_df = pd.DataFrame(data=reducted_text, index=indexes)
+    text_df.index = indexes
+    reducted_text_df['ID'] = text_df['ID']
+
+    kmeans = pickle.load(open('pretrained-models/user-clustering/{}-means.pkl'.format(k), 'rb'))
+    
+    labels = kmeans.predict(reducted_text_df.drop('ID', axis=1))
+    reducted_text_df['cluster'] = labels
+
+    results_text_cluster = text_df.merge(reducted_text_df[['ID', 'cluster']], on='ID')
+    cluster_0 = results_text_cluster[results_text_cluster['cluster'] == 0]
+    cluster_1 = results_text_cluster[results_text_cluster['cluster'] == 1]
+    cluster_2 = results_text_cluster[results_text_cluster['cluster'] == 2]
+
+    for i, cluster in enumerate([cluster_0, cluster_1, cluster_2]):
+        print("Creating wordcloud for cluster {}".format(i+1))
+        wordcloud = WordCloud(stopwords=STOPWORDS, scale=3)
+        # make all the text a unified string
+        unified_str = " ".join(cluster['cleaned_text'])
+        wordcloud.generate(unified_str)
+        wordcloud.to_file(DEST_IMG_FOLDER+"cluster_{}.png".format(i+1))
 
 
 if __name__ == "__main__":
@@ -88,4 +122,5 @@ if __name__ == "__main__":
 
     data = get_preprocessed_users_text()
     visually_determine_best_k_clusters(data)
-    
+    best_k = 3
+    get_wordclouds_in_clusters(best_k)
