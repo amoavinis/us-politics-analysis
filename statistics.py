@@ -1,6 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-
+import numpy as np
 
 if __name__ == "__main__":
     df = pd.read_pickle('data/inferences/dataset-inferenced.pkl')
@@ -54,3 +54,21 @@ if __name__ == "__main__":
     # For political find subjectivity
     print("Republicans:\n", df[df['political']==1]['subjectivity'].value_counts())
     print("Democrats:\n", df[df['political']==0]['subjectivity'].value_counts())
+
+    # Topics stats
+    df['topic'] = df['topic_distribution'].apply(lambda x: np.argmax(x))
+
+    for k in range(0, 6):
+        print(df[df['period'] == k]['topic'].value_counts())
+        print("Sum: ", df[df['period'] == k]['topic'].count())
+
+    # Topic 4 of period 4 content based stats
+    print('political')
+    print(df[(df['period'] == 4) & (df['topic'] == 4)]['political'].value_counts())
+    print('total_sentiment')
+    print(df[(df['period'] == 4) & (df['topic'] == 4)]['total_sentiment'].value_counts())
+    print('subjectivity')
+    print(df[(df['period'] == 4) & (df['topic'] == 4)]['subjectivity'].value_counts())
+    print('gender')
+    print(df[(df['period'] == 4) & (df['topic'] == 4)]['gender'].value_counts())
+
