@@ -72,9 +72,9 @@ def visually_determine_best_k_clusters(reducted_text):
         'Number of clusters VS Davies-bouldin (Less is better)'
     ]
     fig = make_subplots(rows=3, cols=1, subplot_titles=sub_titles)
-    fig.add_trace(go.Scatter(x=CLUSTERS, y=inertias), row=1, col=1)
-    fig.add_trace(go.Scatter(x=CLUSTERS, y=ch_scores_clusters), row=2, col=1)
-    fig.add_trace(go.Scatter(x=CLUSTERS, y=db_scores_clusters), row=3, col=1)
+    fig.add_trace(go.Scatter(x=CLUSTERS, y=inertias, name='Inertia'), row=1, col=1)
+    fig.add_trace(go.Scatter(x=CLUSTERS, y=ch_scores_clusters, name='Calinski-Harabasz'), row=2, col=1)
+    fig.add_trace(go.Scatter(x=CLUSTERS, y=db_scores_clusters, name='Davies-bouldin'), row=3, col=1)
     fig.show()
 
 
