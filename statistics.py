@@ -21,7 +21,7 @@ if __name__ == "__main__":
     ax = df['subjectivity'].plot.hist()
     plt.show()
 
-    
+
     # For gender find political orientation
     print("Females:\n", df[df['gender']==1]['political'].value_counts())
     print("Males:\n", df[df['gender']==0]['political'].value_counts())
@@ -38,7 +38,7 @@ if __name__ == "__main__":
     print("Females:\n", df[df['gender']==1]['subjectivity'].value_counts())
     print("Males:\n", df[df['gender']==0]['subjectivity'].value_counts())
 
-    
+
     # For political find gender
     print("Republicans:\n", df[df['political']==1]['gender'].value_counts())
     print("Democrats:\n", df[df['political']==0]['gender'].value_counts())
@@ -58,17 +58,19 @@ if __name__ == "__main__":
     # Topics stats
     df['topic'] = df['topic_distribution'].apply(lambda x: np.argmax(x))
 
-    for k in range(0, 6):
-        print(df[df['period'] == k]['topic'].value_counts())
-        print("Sum: ", df[df['period'] == k]['topic'].count())
+    for i in range(0, 6):
+        print("=======================")
+        print("Period ", i+1)
+        for j in range(0, 5):
+            # content based stats
+            print("-----------------")
+            print("Topic ", j+1)
+            print(df[(df['period'] == i) & (df['topic'] == j)]['topic'].count())
+            print('political')
+            print(df[(df['period'] == i) & (df['topic'] == j)]['political'].value_counts())
+            print('total_sentiment')
+            print(df[(df['period'] == i) & (df['topic'] == j)]['total_sentiment'].value_counts())
 
-    # Topic 4 of period 4 content based stats
-    print('political')
-    print(df[(df['period'] == 4) & (df['topic'] == 4)]['political'].value_counts())
-    print('total_sentiment')
-    print(df[(df['period'] == 4) & (df['topic'] == 4)]['total_sentiment'].value_counts())
-    print('subjectivity')
-    print(df[(df['period'] == 4) & (df['topic'] == 4)]['subjectivity'].value_counts())
-    print('gender')
-    print(df[(df['period'] == 4) & (df['topic'] == 4)]['gender'].value_counts())
+
+
 
