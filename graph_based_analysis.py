@@ -92,3 +92,47 @@ if __name__ == "__main__":
 # 216065430 , 1550
 # 1917731 , 1514
 # 39349894 , 1477
+
+
+# Twitter ID to @handle conversion
+#
+# 939091 => @JoeBiden
+# 30354991 => @KamalaHarris
+# 226222147 => @PeteButtigieg
+# 216776631 => @BernieSanders
+# 1205226529455632385 => @ProjectLincoln
+# 32871086 => @kylegriffin1
+# 1640929196 => @mmpadellan
+# 255812611 => @donwinslow
+# 1243560408025198593 => @MeidasTouch
+# 39344374 => @DonaldJTrumpJr
+# 292929271 => @charliekirk11
+# 14247236 => @funder
+# 592730371 => @JackPosobiec
+# 803694179079458816 => @VP
+# 1073047860260814848 => @CaslerNoel
+# 357606935 => @ewarren
+# 1108472017144201216 => @TrumpWarRoom
+# 78523300 => @RealJamesWoods
+# 2228878592 => @AndrewYang
+# 236487888 => @WalshFreedom
+# 90480218 => @RichardGrenell
+# 471677441 => @gtconway3d
+# 18266688 => @TomFitton
+# 963790885937995777 => @HKrassenstein
+# 1058520120 => @SenDuckworth
+# 38495835 => @marklevinshow
+# 259001548 => @kayleighmcenany
+# 288277167 => @atrupar
+# 225265639 => @ddale8
+# 27493883 => @joncoopertweets
+# 1043185714437992449 => @catturd2
+# 1212806053907185664 => @TheLeoTerrell
+# 970207298 => @SenWarren
+# 15976705 => @Amy_Siskind
+# 15115280 => @PalmerReport
+# 91882544 => @DineshDSouza
+# 21059255 => @tedlieu
+# 216065430 => @staceyabrams
+# 1917731 => @thehill
+# 39349894 => @EricTrump
