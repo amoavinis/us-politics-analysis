@@ -26,6 +26,25 @@ def export_sample_graph(n_nodes):
     nx.write_gexf(G, "data/sample-retweet-graph.gexf")
 
 
+def get_most_retweeted_users(n):
+
+    # get edges
+    edge_list = get_edge_list()
+
+    # build graph from edge list
+    G = nx.Graph()
+    G.add_edges_from(edge_list)
+
+    # get most retweetes users
+    most_retweeted = sorted(G.degree(), key=lambda x: x[1], reverse=True)[:n]
+    
+    print("\nMost retweeted users (user_id, retweets):")
+    for user_id, retweets in most_retweeted:
+        print(user_id, ",", retweets)
+
+
 if __name__ == "__main__":
 
     export_sample_graph(n_nodes=10000)
+
+    get_most_retweeted_users(n=40)
