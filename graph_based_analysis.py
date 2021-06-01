@@ -43,11 +43,37 @@ def get_most_retweeted_users(n):
         print(user_id, ",", retweets)
 
 
+def get_most_retweeted_tweets(n):
+
+    # read dataset
+    df_retweets = pd.read_pickle("data/tweets-us-all-with-retweets.pkl")
+    df_retweets = df_retweets.dropna(subset=["retweet_graph_edge"])
+
+    # add original user id column
+    df_retweets["original_user_id"] = df_retweets["retweet_graph_edge"].apply(lambda x: x[1])
+
+    # get most retweeted tweets
+    most_retweeted = df_retweets["text"].value_counts()[:n]
+
+    # get corresponding ids of the original users
+    df_retweets_original = df_retweets[["text", "original_user_id"]].drop_duplicates()
+
+    print("\nMost retweeted tweets (Original tweet", "Number of retweets", "Original user id):")
+    for text, retweets in most_retweeted.iteritems():
+        user_id = df_retweets_original[df_retweets_original["text"] == text]["original_user_id"].values[0]
+        print("\n")
+        print("Tweet:", text)
+        print("Retweets:", retweets)
+        print("User id:", user_id)
+
+
 if __name__ == "__main__":
 
     export_sample_graph(n_nodes=10000)
 
     get_most_retweeted_users(n=40)
+
+    get_most_retweeted_tweets(n=40)
 
 
 # Most retweeted users (user_id, retweets):
